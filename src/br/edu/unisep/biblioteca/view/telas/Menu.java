@@ -12,14 +12,57 @@ import java.util.List;
 public class Menu {
 
     private Funcao funcao;
+    private Usuario usuario;
 
     public Menu() {
-        funcao = new Funcao();
-        exibir();
+        this.funcao = new Funcao();
+        exibirLogin();
     }
 
-    public void exibir() {
-        JFrame janela = new JFrame("Menu Principal");
+    private void exibirLogin() {
+        JFrame janelaLogin = new JFrame("Login");
+        janelaLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        janelaLogin.setSize(400, 200);
+
+        JPanel painelLogin = new JPanel();
+        painelLogin.setLayout(new BoxLayout(painelLogin, BoxLayout.Y_AXIS));
+
+        JLabel lblNome = new JLabel("Nome:");
+        JTextField txtNome = new JTextField(20);
+
+        JLabel lblId = new JLabel("ID:");
+        JTextField txtId = new JTextField(20);
+
+        JButton btnLogin = new JButton("Entrar");
+        btnLogin.addActionListener(e -> {
+            String nome = txtNome.getText();
+            String idStr = txtId.getText();
+            int id;
+            try {
+                id = Integer.parseInt(idStr);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(janelaLogin, "ID inválido.", "Erro", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            usuario = new Usuario(id, nome);
+            janelaLogin.dispose();
+            exibirMenu();
+        });
+
+        painelLogin.add(lblNome);
+        painelLogin.add(txtNome);
+        painelLogin.add(lblId);
+        painelLogin.add(txtId);
+        painelLogin.add(Box.createRigidArea(new Dimension(0, 10))); // Adiciona um espaço
+        painelLogin.add(btnLogin);
+
+        janelaLogin.add(painelLogin);
+        janelaLogin.setVisible(true);
+    }
+
+    public void exibirMenu() {
+        JFrame janela = new JFrame("Menu Principal - " + usuario.getNome());
         janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         janela.setSize(600, 600);
 
@@ -80,17 +123,29 @@ public class Menu {
         painel.add(JBtnDevolverLivro);
         painel.add(Box.createRigidArea(new Dimension(0, 10))); // Adiciona um espaço
 
+        JButton JBtnSalvarDados = new JButton("Salvar Dados");
+        JBtnSalvarDados.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JBtnSalvarDados.addActionListener(e -> salvarDados());
+        painel.add(JBtnSalvarDados);
+        painel.add(Box.createRigidArea(new Dimension(0, 10))); // Adiciona um espaço
+
         janela.add(painel);
 
         janela.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 JOptionPane.showMessageDialog(janela,
                         "Dados salvos com sucesso!");
+                funcao.salvarDados();
                 System.exit(0);
             }
         });
 
         janela.setVisible(true);
+    }
+
+    private void salvarDados() {
+        funcao.salvarDados();
+        JOptionPane.showMessageDialog(null, "Dados salvos com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void cadastrarAutor() {
@@ -183,47 +238,38 @@ public class Menu {
         }
 
         String nomeUsuario = JOptionPane.showInputDialog("Digite o nome do usuário:");
-        Usuario usuario = new Usuario(funcao.getLivros().size() + 1, nomeUsuario);
+        if (nomeUsuario == null || nomeUsuario.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nome do usuário não pode ser vazio.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Usuario usuario = funcao.getUsuarios().stream()
+                .filter(u -> u.getNome().equalsIgnoreCase(nomeUsuario))
+                .findFirst()
+                .orElse(new Usuario(funcao.getUsuarios().size() + 1, nomeUsuario));
+
+        if (!funcao.getUsuarios().contains(usuario)) {
+            funcao.cadastrarUsuario(usuario);
+        }
 
         funcao.emprestarLivro(livro, usuario);
         JOptionPane.showMessageDialog(null, "Livro emprestado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void devolverLivro() {
+        String emprestimoIdStr = JOptionPane.showInputDialog("Digite o ID do empréstimo a ser devolvido:");
+        int emprestimoId;
+        try {
+            emprestimoId = Integer.parseInt(emprestimoIdStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "ID do empréstimo inválido.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-    } {
-        JFrame janela = new JFrame("Menu Principal");
-        janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        janela.setSize(600, 600);
-
-        JPanel painel = new JPanel();
-        painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
-
-        // Outros botões...
-
-        JButton JBtnSalvarDados = new JButton("Salvar Dados");
-        JBtnSalvarDados.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JBtnSalvarDados.addActionListener(e -> salvarDados());
-        painel.add(JBtnSalvarDados);
-        painel.add(Box.createRigidArea(new Dimension(0, 10))); // Adiciona um espaço
-
-        janela.add(painel);
-
-        janela.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                JOptionPane.showMessageDialog(janela,
-                        "Dados salvos com sucesso!");
-                funcao.salvarDados();
-                System.exit(0);
-            }
-        });
-
-        janela.setVisible(true);
+        funcao.devolverLivro(emprestimoId);
+        JOptionPane.showMessageDialog(null, "Livro devolvido com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void salvarDados() {
-        funcao.salvarDados();
-        JOptionPane.showMessageDialog(null, "Dados salvos com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+    public void exibir() {
     }
-
 }

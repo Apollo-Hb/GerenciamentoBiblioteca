@@ -11,12 +11,14 @@ public class Funcao {
     private List<Autor> autores;
     private List<Genero> generos;
     private List<Emprestimo> emprestimos;
+    private List<Usuario> usuarios;
 
     public Funcao() {
         livros = new ArrayList<>();
         autores = new ArrayList<>();
         generos = new ArrayList<>();
         emprestimos = new ArrayList<>();
+        usuarios = new ArrayList<>();
     }
 
     public List<Livro> getLivros() {
@@ -29,6 +31,10 @@ public class Funcao {
 
     public List<Genero> getGeneros() {
         return generos;
+    }
+
+    public List<Usuario> getUsuarios() {
+        return usuarios;
     }
 
     public List<Emprestimo> getEmprestimos() {
@@ -50,15 +56,25 @@ public class Funcao {
         System.out.println("Livro cadastrado com sucesso: " + livro);
     }
 
+    public void cadastrarUsuario(Usuario usuario) {
+        usuarios.add(usuario);
+        System.out.println("Usuário cadastrado com sucesso: " + usuario);
+    }
+
     public void emprestarLivro(Livro livro, Usuario usuario) {
         Emprestimo emprestimo = new Emprestimo(emprestimos.size() + 1, livro, usuario, LocalDate.now(), null);
         emprestimos.add(emprestimo);
         System.out.println("Empréstimo realizado com sucesso: " + emprestimo);
     }
 
-    public void devolverLivro(Emprestimo emprestimo) {
-        emprestimo.setDataDevolucao(LocalDate.now());
-        System.out.println("Livro devolvido com sucesso: " + emprestimo);
+    public void devolverLivro(int emprestimoId) {
+        Emprestimo emprestimo = emprestimos.stream().filter(e -> e.getId() == emprestimoId).findFirst().orElse(null);
+        if (emprestimo != null && emprestimo.getDataDevolucao() == null) {
+            emprestimo.setDataDevolucao(LocalDate.now());
+            System.out.println("Livro devolvido com sucesso: " + emprestimo);
+        } else {
+            System.out.println("Empréstimo não encontrado ou livro já devolvido.");
+        }
     }
 
     public void consultarLivrosDisponiveis() {
@@ -77,28 +93,6 @@ public class Funcao {
         }
     }
 
-    // Novo método para salvar dados
     public void salvarDados() {
-        boolean autoresSalvos = Funcao.salvarArquivosAutores(autores);
-        boolean generosSalvos = Funcao.salvarArquivosGeneros(generos);
-        boolean livrosSalvos = Funcao.salvarArquivosLivros(livros);
-
-        if (autoresSalvos && generosSalvos && livrosSalvos) {
-            System.out.println("Todos os dados foram salvos com sucesso.");
-        } else {
-            System.out.println("Erro ao salvar alguns dados.");
-        }
-    }
-
-    private static boolean salvarArquivosLivros(List<Livro> livros) {
-        return false;
-    }
-
-    private static boolean salvarArquivosGeneros(List<Genero> generos) {
-        return false;
-    }
-
-    private static boolean salvarArquivosAutores(List<Autor> autores) {
-        return false;
     }
 }
